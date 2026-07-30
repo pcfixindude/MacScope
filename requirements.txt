@@ -1,6 +1,6 @@
 streamlit>=1.40
 sqlalchemy>=2.0
-pydantic>=2.8
+pydantic>=2.13.4
 psutil>=6.0
 pandas>=2.2
 plotly>=5.24
