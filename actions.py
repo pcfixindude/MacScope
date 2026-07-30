@@ -137,6 +137,12 @@ def _record(
             )
         )
         db.commit()
+    try:
+        from macscope.timeline import record_action_timeline
+
+        record_action_timeline(action, target, result, message, target_type=target_type)
+    except Exception:
+        pass
     logger.info(
         "action=%s target=%s result=%s user=%s message=%s",
         action,

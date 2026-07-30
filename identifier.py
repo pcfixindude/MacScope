@@ -45,6 +45,12 @@ def classify_item(item: Item) -> Item:
     elif item.confidence is None:
         item.confidence = 0.9 if classification == CLASS_APPLE else (0.7 if classification != CLASS_UNKNOWN else 0.35)
     item.available_actions = _available_actions(item)
+    try:
+        from macscope.knowledge import enrich_item_knowledge
+
+        enrich_item_knowledge(item)
+    except Exception:
+        pass
     item.ensure_stable_id()
     return item
 

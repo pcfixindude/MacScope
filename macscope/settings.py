@@ -53,6 +53,8 @@ class Settings:
             "AI": True,
             "Storage": True,
             "Security": True,
+            "Crashes": True,
+            "Permissions": True,
         }
     )
     collect_network_listeners: bool = True

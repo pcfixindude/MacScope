@@ -1,31 +1,35 @@
 # Changelog
 
-## 2.0.0 — 2026-07-29
+## 3.0.0 — 2026-07-30
 
 ### Added
-- Full navigation for applications, processes, startup, login/background items, LaunchAgents/Daemons, Homebrew, Python, Node, Docker, AI models, network, storage, security, relationships, cleanup review, snapshots, reports, action history, diagnostics, settings, and about.
-- Unified inventory item model with stable IDs and expanded metadata.
-- Application Support data directory (`~/Library/Application Support/MacScope/`) for database, backups, reports, logs, exports, cache, and disabled items.
-- Schema versioning and additive migrations from Version 1 databases.
-- Python, Node, Docker, AI, and Storage collectors with bounded scans.
-- Relationship derivation and Cleanup Review candidates.
-- HTML/CSV/JSON/Markdown report exports with redaction settings.
-- Expanded guarded actions including restore for backed-up plists, Docker lifecycle, environment cleanup, and Trash workflows.
-- Local knowledge catalog for common Apple and third-party components.
-- Persistent settings with destructive actions disabled until safety acknowledgement.
-- Launcher dependency caching, already-running detection, and external log storage.
-- Release and maintenance scripts under `scripts/`.
+- **System Timeline** — persistent history of installs/removals/updates, startup/security/Homebrew/Docker/Python/AI/network changes, and management actions.
+- **Projects** — development project discovery (Python/Node/Docker/Git/Streamlit/SQLite/Postgres/Cursor/VS Code) with grouped inventory.
+- **Knowledge Engine** — local purpose/developer/docs/startup/ports/dependency metadata for common software.
+- **Relationship Graph** — expanded relations (LaunchAgent/Daemon/Login Item, projects, AI server→model) with table and tree views.
+- **Cleanup Advisor** — recommendations with reason, estimated reclaim, confidence, and risk (unused apps, old downloads, duplicates, orphans, and more).
+- **Storage Explorer** — drill-down buckets with optional treemap visualization.
+- **Startup Analyzer** — Low/Medium/High startup impact scoring.
+- **Natural Language Search** — local rule-based inventory queries.
+- **Assistant** — grounded answers from snapshot + timeline only.
+- **Crash History** — DiagnosticReports grouped by application.
+- **Permissions Explorer** — TCC-backed privacy permissions when readable.
+- **Update Awareness** — Homebrew/Node/Docker/Python/LM Studio update signals without auto-install.
+- **UI polish** — command palette, favorites/pins/notes, folder shortcuts, recent activity, badges.
 
 ### Changed
-- Version bumped to 2.0.0.
-- Dashboard and inventory pages use summary + inspector layout across categories.
-- Snapshot comparison expanded for AI, storage, security, and port close events.
+- Schema version bumped to 3 with additive migrations (`timeline_events`, `user_annotations`, inventory project/startup/knowledge fields).
+- Collectors orchestration now includes projects, crashes, permissions, knowledge enrichment, and startup scoring.
 
 ### Safety
-- Destructive actions remain off by default.
-- System LaunchDaemons/Agents requiring elevation remain instruction-first.
-- No cloud services, API keys, or inventory uploads.
+- Backward compatible with MacScope 2.x databases.
+- Destructive actions remain gated by Settings acknowledgement.
+- Assistant never invents facts beyond local inventory/timeline.
+
+## 2.0.0 — 2026-07-29
+
+Full local inventory suite with Homebrew/Python/Node/Docker/AI collectors, reports, relationships, cleanup review, and guarded actions.
 
 ## 1.0.0 — 2026-07-29
 
-Initial Version 1 release with core inventory, snapshots, comparison, and guarded management actions.
+Initial Version 1 release.

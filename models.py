@@ -68,6 +68,10 @@ class InventoryItem(Base):
     build_number: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     related_package: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     related_service: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # V3 columns
+    project_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
+    startup_impact: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, index=True)
+    knowledge_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
 
 class Snapshot(Base):
@@ -129,3 +133,32 @@ class BackupRecord(Base):
     backup_path: Mapped[str] = mapped_column(Text)
     metadata_json: Mapped[str] = mapped_column(Text, default="{}")
     restorable: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class TimelineEvent(Base):
+    __tablename__ = "timeline_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    event_type: Mapped[str] = mapped_column(String(64), index=True)
+    category: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
+    title: Mapped[str] = mapped_column(String(512))
+    summary: Mapped[str] = mapped_column(Text, default="")
+    stable_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)
+    snapshot_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    source: Mapped[str] = mapped_column(String(64), default="system")  # system | action | snapshot
+    details_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class UserAnnotation(Base):
+    """Favorites, pins, and notes for inventory items (stable_id keyed)."""
+
+    __tablename__ = "user_annotations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    stable_id: Mapped[str] = mapped_column(String(128), index=True)
+    kind: Mapped[str] = mapped_column(String(32), index=True)  # favorite | pin | note
+    value: Mapped[str] = mapped_column(Text, default="")
+    display_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)

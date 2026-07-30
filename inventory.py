@@ -58,6 +58,9 @@ class Item:
     removal_guidance: str | None = None
     orphan_status: bool = False
     build_number: str | None = None
+    project_key: str | None = None
+    startup_impact: str | None = None
+    knowledge_key: str | None = None
 
     def ensure_stable_id(self) -> str:
         if self.stable_id:

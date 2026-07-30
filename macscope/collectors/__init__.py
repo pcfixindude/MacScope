@@ -12,6 +12,8 @@ from macscope.collectors.processes import ProcessesCollector
 from macscope.collectors.python_envs import PythonCollector
 from macscope.collectors.storage import StorageCollector
 from macscope.collectors.system import SystemCollector
+from macscope.collectors.crashes import CrashReportsCollector
+from macscope.collectors.permissions import PermissionsCollector
 
 __all__ = [
     "ApplicationsCollector",
@@ -26,4 +28,6 @@ __all__ = [
     "DockerCollector",
     "AICollector",
     "StorageCollector",
+    "CrashReportsCollector",
+    "PermissionsCollector",
 ]

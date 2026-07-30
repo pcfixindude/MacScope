@@ -8,17 +8,22 @@ from inventory import Item
 from macscope.collectors.applications import ApplicationsCollector
 from macscope.collectors.ai_models import AICollector
 from macscope.collectors.brew import BrewCollector
+from macscope.collectors.crashes import CrashReportsCollector
 from macscope.collectors.docker_env import DockerCollector
 from macscope.collectors.launch import LaunchItemsCollector
 from macscope.collectors.login_items import LoginItemsCollector
 from macscope.collectors.network import NetworkCollector
 from macscope.collectors.node_envs import NodeCollector
+from macscope.collectors.permissions import PermissionsCollector
 from macscope.collectors.processes import ProcessesCollector
 from macscope.collectors.python_envs import PythonCollector
 from macscope.collectors.storage import StorageCollector
 from macscope.collectors.system import SystemCollector
+from macscope.knowledge import enrich_item_knowledge
+from macscope.projects import discover_projects, link_inventory_to_projects, projects_as_items
 from macscope.relationships import Relation, build_relationships
 from macscope.settings import load_settings
+from macscope.startup_analyzer import annotate_startup_impacts
 from utils import logger
 
 
@@ -35,6 +40,8 @@ ALL_COLLECTORS = [
     DockerCollector(),
     AICollector(),
     StorageCollector(),
+    CrashReportsCollector(),
+    PermissionsCollector(),
 ]
 
 
@@ -55,12 +62,13 @@ def collect_all(progress=None, *, deep: bool = False) -> CollectionResult:
     collectors = []
     for collector in ALL_COLLECTORS:
         key = collector.name
-        # Map collector names to settings keys
         settings_key = {
             "Startup Items": "Startup",
             "Login & Background Items": "Login Items",
             "Homebrew": "Homebrew",
             "AI": "AI",
+            "Crashes": "Crashes",
+            "Permissions": "Permissions",
         }.get(key, key)
         if key == "Docker" and not settings.collect_docker:
             continue
@@ -70,12 +78,9 @@ def collect_all(progress=None, *, deep: bool = False) -> CollectionResult:
             continue
         if enabled.get(settings_key, True) is False:
             continue
-        # Skip deep-ish collectors unless deep or settings allow
-        if not deep and key in {"Storage", "AI"} and not settings.collect_ai_models and key == "AI":
-            continue
         collectors.append(collector)
 
-    total = max(len(collectors), 1)
+    total = max(len(collectors) + 1, 1)
     for index, collector in enumerate(collectors, 1):
         if progress:
             progress((index - 1) / total, f"Collecting {collector.name}…")
@@ -85,14 +90,28 @@ def collect_all(progress=None, *, deep: bool = False) -> CollectionResult:
         except Exception as exc:
             logger.exception("Collector %s failed: %s", collector.name, exc)
             result.errors.append({"collector": collector.name, "error": str(exc)})
+
     if progress:
-        progress(0.9, "Identifying and linking…")
+        progress(0.85, "Discovering projects…")
+    try:
+        projects = discover_projects()
+        result.items.extend(projects_as_items(projects))
+        project_rels = link_inventory_to_projects(result.items, projects)
+    except Exception as exc:
+        logger.exception("Project discovery failed: %s", exc)
+        result.errors.append({"collector": "Projects", "error": str(exc)})
+        project_rels = []
+
+    if progress:
+        progress(0.92, "Identifying and linking…")
     try:
         _cross_link_running_apps(result.items)
         result.items = enrich_items(result.items)
         for item in result.items:
+            enrich_item_knowledge(item)
             item.ensure_stable_id()
-        result.relationships = build_relationships(result.items)
+        annotate_startup_impacts(result.items)
+        result.relationships = build_relationships(result.items) + project_rels
     except Exception as exc:
         logger.exception("Post-processing failed: %s", exc)
         result.errors.append({"collector": "Post-processing", "error": str(exc)})

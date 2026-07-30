@@ -58,6 +58,9 @@ def _item_to_row(snapshot_id: int, item: Item) -> InventoryItem:
         build_number=item.build_number,
         related_package=item.related_package,
         related_service=item.related_service,
+        project_key=item.project_key,
+        startup_impact=item.startup_impact,
+        knowledge_key=item.knowledge_key,
     )
 
 
@@ -69,6 +72,8 @@ def save_snapshot(
     name: str | None = None,
     duration_seconds: float | None = None,
 ) -> int:
+    # Capture previous snapshot for timeline deltas before inserting the new one.
+    older_snap, older_rows = latest_snapshot()
     with SessionLocal() as db:
         snap = Snapshot(
             hostname=socket.gethostname(),
@@ -93,7 +98,15 @@ def save_snapshot(
                     )
                 )
         db.commit()
-        return snap.id
+        new_id = snap.id
+    try:
+        from macscope.timeline import record_snapshot_delta
+
+        _, newer_rows = get_snapshot(new_id)
+        record_snapshot_delta(new_id, older_rows if older_snap else [], newer_rows)
+    except Exception:
+        pass
+    return new_id
 
 
 def latest_snapshot() -> tuple[Snapshot | None, list[InventoryItem]]:
@@ -203,6 +216,9 @@ def row_as_dict(row: InventoryItem) -> dict[str, Any]:
         "Related": row.related_application,
         "Related package": getattr(row, "related_package", None),
         "Related service": getattr(row, "related_service", None),
+        "Project": getattr(row, "project_key", None),
+        "Startup impact": getattr(row, "startup_impact", None),
+        "Knowledge": getattr(row, "knowledge_key", None),
         "Orphan": getattr(row, "orphan_status", False),
         "Protected": row.protected,
         "Actions": ", ".join(actions) if isinstance(actions, list) else str(actions or ""),

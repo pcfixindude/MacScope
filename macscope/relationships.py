@@ -71,11 +71,18 @@ def build_relationships(items: list[Item]) -> list[Relation]:
         if not related and agent.related_application:
             related = app_by_name.get(agent.related_application.lower())
         if related:
+            itype = (agent.item_type or agent.vendor or "").lower()
+            if "logindaemon" in itype or "daemon" in itype:
+                rel_type = "application_owns_launch_daemon"
+            elif "login" in (agent.category or "").lower():
+                rel_type = "application_owns_login_item"
+            else:
+                rel_type = "application_owns_launch_agent"
             relations.append(
                 Relation(
                     related.stable_id or "",
                     agent.stable_id or "",
-                    "application_owns_launch_item",
+                    rel_type,
                     0.8,
                     "Launch label/bundle association",
                     related.name,

@@ -203,4 +203,89 @@ def find_cleanup_candidates(items: list[Item]) -> list[CleanupCandidate]:
                         item.stable_id,
                     )
                 )
+
+    # Unused apps: installed, not running, not referenced by startup/login
+    startup_names = {
+        (i.related_application or i.name or "").lower()
+        for i in items
+        if i.category in {"Startup", "Login Items", "Background Items"}
+    }
+    for item in items:
+        if item.category != "Applications" or item.protected:
+            continue
+        if item.running_state == "Running":
+            continue
+        if (item.name or "").lower() in startup_names:
+            continue
+        candidates.append(
+            CleanupCandidate(
+                "Possibly unused application",
+                item.path,
+                item.name,
+                item.disk_usage,
+                "Not running and not referenced by startup/login items in this snapshot.",
+                0.35,
+                item.modification_date,
+                item.name,
+                "Caution",
+                "Review before moving to Trash",
+                item.stable_id,
+            )
+        )
+
+    # Old downloads (>90 days)
+    downloads = Path.home() / "Downloads"
+    if downloads.exists():
+        cutoff = datetime.now() - timedelta(days=90)
+        try:
+            for child in downloads.iterdir():
+                try:
+                    st = child.stat()
+                    mtime = datetime.fromtimestamp(st.st_mtime)
+                    if mtime >= cutoff:
+                        continue
+                    size = float(st.st_size if child.is_file() else 0)
+                    candidates.append(
+                        CleanupCandidate(
+                            "Old download",
+                            str(child),
+                            child.name,
+                            size if size else None,
+                            "File/folder in Downloads older than 90 days.",
+                            0.45,
+                            str(st.st_mtime),
+                            "Downloads",
+                            "Caution",
+                            "Reveal and review before deleting",
+                            None,
+                        )
+                    )
+                except OSError:
+                    continue
+        except OSError:
+            pass
+
     return candidates
+
+
+def advisor_rows(items: list[Item]) -> list[dict[str, Any]]:
+    """Serialize cleanup advisor recommendations for UI/tables."""
+    rows = []
+    for c in find_cleanup_candidates(items):
+        rows.append(
+            {
+                "Type": c.candidate_type,
+                "Name": c.name,
+                "Path": c.path,
+                "Estimated reclaim": format_bytes(c.size) if c.size else "—",
+                "Size bytes": c.size or 0,
+                "Reason": c.reason,
+                "Confidence": c.confidence,
+                "Risk": c.risk,
+                "Recommended action": c.recommended_action,
+                "Related": c.related_software,
+                "Last modified": c.last_modified,
+                "Stable ID": c.stable_id,
+            }
+        )
+    return rows

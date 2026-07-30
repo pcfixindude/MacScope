@@ -47,6 +47,8 @@ def _temp_database(tmp_path, monkeypatch):
     monkeypatch.setattr("actions.SessionLocal", database.SessionLocal)
     monkeypatch.setattr("snapshot.SessionLocal", database.SessionLocal)
     monkeypatch.setattr("macscope.backup.SessionLocal", database.SessionLocal)
+    monkeypatch.setattr("macscope.timeline.SessionLocal", database.SessionLocal)
+    monkeypatch.setattr("macscope.annotations.SessionLocal", database.SessionLocal)
     monkeypatch.setattr("actions.BACKUPS_DIR", backups)
     monkeypatch.setattr("macscope.backup.BACKUPS_DIR", backups)
     monkeypatch.setattr("macscope.backup.DISABLED_ITEMS_DIR", data_root / "disabled-items")

@@ -4,7 +4,7 @@ MacScope is a **local-only** macOS inventory, monitoring, startup-management, so
 
 It helps you see what is installed, what is running, what starts automatically, how components relate, what resources they use, and which items may be safe to stop, disable, or remove — with previews, confirmations, backups, and an action history.
 
-**Version:** 2.0.0
+**Version:** 3.0.0
 
 ## Screenshots
 
@@ -70,6 +70,17 @@ cd ~/Projects/MacScope && source .venv/bin/activate && python -m streamlit run a
 - HTML/CSV/JSON/Markdown reports with redaction
 - Action history with restore for backed-up plists
 - Diagnostics and Settings
+- System Timeline of inventory and management changes
+- Development project awareness and grouping
+- Local knowledge engine for common software
+- Cleanup Advisor with reclaim estimates
+- Storage Explorer with drill-down / treemap
+- Startup impact analyzer
+- Natural-language inventory search (local rules)
+- Grounded local Assistant
+- Crash history and permissions explorer
+- Update awareness (detect only, never auto-install)
+- Favorites, pins, notes, command palette, folder shortcuts
 
 ## Safety model
 

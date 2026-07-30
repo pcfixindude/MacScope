@@ -48,6 +48,9 @@ _INVENTORY_EXTRA_COLUMNS: dict[str, str] = {
     "build_number": "TEXT",
     "related_package": "TEXT",
     "related_service": "TEXT",
+    "project_key": "TEXT",
+    "startup_impact": "TEXT",
+    "knowledge_key": "TEXT",
 }
 
 _SNAPSHOT_EXTRA_COLUMNS: dict[str, str] = {
@@ -133,6 +136,8 @@ def init_db() -> None:
         Relationship,
         SchemaMeta,
         Snapshot,
+        TimelineEvent,
+        UserAnnotation,
     )
 
     Base.metadata.bind = engine  # type: ignore[attr-defined]
@@ -143,7 +148,7 @@ def init_db() -> None:
     _set_schema_version(SCHEMA_VERSION)
 
     # Keep commonly imported SessionLocal aliases in sync when possible.
-    for module_name in ("actions", "snapshot", "macscope.backup"):
+    for module_name in ("actions", "snapshot", "macscope.backup", "macscope.timeline", "macscope.annotations"):
         try:
             mod = __import__(module_name, fromlist=["SessionLocal"])
             if hasattr(mod, "SessionLocal"):
