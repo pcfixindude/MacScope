@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-"""Local knowledge engine. Extends the V2 catalog; no network access."""
+"""Local knowledge engine v2 — catalog + offline knowledge pack (no network)."""
 
-from dataclasses import dataclass, field
+import json
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 
-from macscope.catalog import CATALOG, CatalogEntry, lookup_catalog
 from inventory import Item
+from macscope.catalog import CATALOG, CatalogEntry, lookup_catalog
 
 
 @dataclass(frozen=True)
@@ -20,6 +23,10 @@ class KnowledgeEntry:
     dependencies: tuple[str, ...] = ()
     homepage: str = ""
     safety_notes: str = ""
+    name: str = ""
+    kind: str = "application"
+    risk_notes: str = ""
+    description: str = ""
 
 
 def _from_catalog(entry: CatalogEntry) -> KnowledgeEntry:
@@ -63,7 +70,46 @@ def _from_catalog(entry: CatalogEntry) -> KnowledgeEntry:
         dependencies=deps,
         homepage=entry.homepage,
         safety_notes=entry.safety_notes or entry.removal_notes,
+        name=entry.display_name,
+        description=entry.description,
+        risk_notes=entry.safety_notes,
     )
+
+
+@lru_cache(maxsize=1)
+def _load_pack() -> dict[str, KnowledgeEntry]:
+    pack_path = Path(__file__).resolve().parent / "data" / "knowledge_pack.json"
+    out: dict[str, KnowledgeEntry] = {}
+    if pack_path.exists():
+        try:
+            raw = json.loads(pack_path.read_text(encoding="utf-8"))
+            for row in raw.get("entries", []):
+                key = str(row.get("key") or "").strip()
+                if not key:
+                    continue
+                out[key] = KnowledgeEntry(
+                    key=key,
+                    purpose=str(row.get("purpose") or row.get("description") or key),
+                    developer=str(row.get("publisher") or ""),
+                    documentation=str(row.get("documentation") or ""),
+                    removal_generally_safe=bool(row.get("removal_generally_safe")),
+                    typical_startup=str(row.get("typical_startup") or "Unknown"),
+                    common_ports=tuple(int(p) for p in (row.get("common_ports") or [])),
+                    dependencies=tuple(str(d) for d in (row.get("dependencies") or [])),
+                    homepage=str(row.get("documentation") or ""),
+                    safety_notes=str(row.get("removal_notes") or row.get("risk_notes") or ""),
+                    name=str(row.get("name") or key),
+                    kind=str(row.get("kind") or "application"),
+                    risk_notes=str(row.get("risk_notes") or ""),
+                    description=str(row.get("description") or ""),
+                )
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            pass
+    return out
+
+
+def knowledge_count() -> int:
+    return len(KNOWLEDGE) + len(_load_pack())
 
 
 KNOWLEDGE: dict[str, KnowledgeEntry] = {}
@@ -71,8 +117,6 @@ for _entry in CATALOG:
     ke = _from_catalog(_entry)
     KNOWLEDGE[ke.key] = ke
 
-
-# Additional explicit knowledge not fully covered by catalog display names
 KNOWLEDGE.update(
     {
         "macos": KnowledgeEntry(
@@ -85,6 +129,9 @@ KNOWLEDGE.update(
             (),
             (),
             safety_notes="Never remove system components.",
+            name="macOS",
+            kind="system",
+            risk_notes="System integrity protected.",
         ),
         "homebrew": KnowledgeEntry(
             "homebrew",
@@ -95,6 +142,8 @@ KNOWLEDGE.update(
             "Services optional via brew services",
             (),
             ("Xcode CLT",),
+            name="Homebrew",
+            kind="package_manager",
         ),
     }
 )
@@ -111,9 +160,23 @@ def lookup_knowledge(
     if cat:
         return _from_catalog(cat)
     nm = (name or "").lower()
-    for key, entry in KNOWLEDGE.items():
-        if key.replace("_", " ") in nm or key in nm:
-            return entry
+    lab = (label or "").lower()
+    pack = _load_pack()
+    # Exact / substring against packed and core knowledge
+    for store in (KNOWLEDGE, pack):
+        for key, entry in store.items():
+            hay = f"{key} {entry.name} {entry.description}".lower()
+            if nm and (key.replace("_", " ") in nm or key in nm or (entry.name and entry.name.lower() in nm)):
+                return entry
+            if lab and (key in lab or lab in hay):
+                return entry
+    # Port knowledge
+    if category == "Network" and name:
+        digits = "".join(ch for ch in name if ch.isdigit())
+        if digits:
+            port_key = f"port_{digits}"
+            if port_key in pack:
+                return pack[port_key]
     if category == "System":
         return KNOWLEDGE.get("macos")
     return None
@@ -130,11 +193,11 @@ def enrich_item_knowledge(item: Item) -> Item:
         return item
     item.knowledge_key = knowledge.key
     if not item.explanation:
-        item.explanation = knowledge.purpose
+        item.explanation = knowledge.description or knowledge.purpose
     if not item.publisher and knowledge.developer:
         item.publisher = knowledge.developer
-    if not item.removal_guidance and knowledge.safety_notes:
-        item.removal_guidance = knowledge.safety_notes
+    if not item.removal_guidance and (knowledge.safety_notes or knowledge.risk_notes):
+        item.removal_guidance = knowledge.safety_notes or knowledge.risk_notes
     details = dict(item.details or {})
     details["knowledge"] = {
         "purpose": knowledge.purpose,
@@ -144,6 +207,9 @@ def enrich_item_knowledge(item: Item) -> Item:
         "typical_startup": knowledge.typical_startup,
         "common_ports": list(knowledge.common_ports),
         "dependencies": list(knowledge.dependencies),
+        "risk_notes": knowledge.risk_notes,
+        "kind": knowledge.kind,
+        "name": knowledge.name,
     }
     item.details = details
     return item

@@ -4,6 +4,13 @@ This roadmap tracks MacScope’s direction after the 3.0.0 release. Dates are as
 
 ## Completed
 
+### 4.0 — Understanding platform
+- Project Intelligence, Workspaces, Historical Intelligence
+- Scored Recommendation Engine, Usage History, System Explorer
+- Knowledge Engine 2 (2,600+ local entries)
+- Search/Assistant evidence model, Developer Dashboard
+- Automation rules, Visual Analytics, Plugin architecture, performance helpers
+
 ### 1.x — Foundation
 - Local Streamlit application shell
 - Core collectors: applications, processes, launch items, login/background, Homebrew, network, system
@@ -36,27 +43,23 @@ This roadmap tracks MacScope’s direction after the 3.0.0 release. Dates are as
 
 ## In Progress
 
-- Community documentation and GitHub project polish
-- Screenshot capture for README / user guide placeholders
-- Broader automated CI coverage for release validation
+- Real screenshot replacements for placeholder images
+- Broader CI matrix hardening and advisory lint cleanup
 
 ## Planned
 
-- Richer project workspace linking (deeper Git/workspace metadata without network dependency)
-- Expanded local knowledge catalog coverage
-- Improved Cleanup Advisor confidence calibration and false-positive reduction
+- Deeper workspace dependency ordering / health probes
+- Improved recommendation false-positive reduction with usage history
 - More complete permissions visibility where macOS APIs allow (still read-only)
-- Exportable timeline digests for audits
 - Optional offline packaging improvements for non-developer users
 - Accessibility pass on Streamlit navigation and dense tables
+- Richer plugin action/report/assistant hooks beyond collector manifests
 
 ## Future Ideas
 
 - Signed / notarized outer launcher packaging (outside the Python tree)
 - Read-only “audit mode” profile with destructive UI hidden entirely
-- Deeper Docker/Homebrew dependency graphs
 - Optional local embedding index for semantic search (still offline; no cloud)
-- Plugin-style collector registration with strict safety contracts
 - Multi-user admin notes syncing **only** via user-controlled local/shared folders (never a MacScope cloud)
 
 ## Non-goals

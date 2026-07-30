@@ -61,6 +61,9 @@ def _item_to_row(snapshot_id: int, item: Item) -> InventoryItem:
         project_key=item.project_key,
         startup_impact=item.startup_impact,
         knowledge_key=item.knowledge_key,
+        workspace_id=item.workspace_id,
+        usage_score=item.usage_score,
+        last_used_at=item.last_used_at,
     )
 
 
@@ -104,6 +107,26 @@ def save_snapshot(
 
         _, newer_rows = get_snapshot(new_id)
         record_snapshot_delta(new_id, older_rows if older_snap else [], newer_rows)
+    except Exception:
+        pass
+    try:
+        from macscope.settings import load_settings
+        from macscope.usage import record_usage_from_snapshot
+
+        if load_settings().enable_usage_tracking:
+            record_usage_from_snapshot(new_id, items)
+    except Exception:
+        pass
+    try:
+        from macscope.automation import run_due_rules
+
+        run_due_rules(inventory_rows=items)
+    except Exception:
+        pass
+    try:
+        from macscope.cache import cache_invalidate
+
+        cache_invalidate()
     except Exception:
         pass
     return new_id

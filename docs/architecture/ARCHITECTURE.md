@@ -1,6 +1,8 @@
 # MacScope Architecture
 
-MacScope is a local Streamlit application that inventories a macOS system, stores snapshots in SQLite, and offers guarded management actions. This document describes the major subsystems as of version 3.0.
+MacScope is a local Streamlit application that inventories a macOS system, stores snapshots in SQLite, and offers guarded management actions. This document describes the major subsystems as of version **4.0**.
+
+MacScope 4.0 extends 3.x into an understanding platform: every subsystem aims to answer what something is, why it is present, what depends on it, what changed, whether removal is safe to consider, which project uses it, and what happens if it is disabled.
 
 ## Application layout
 
@@ -20,20 +22,30 @@ MacScope/
   macscope/
     collectors/          # Read-only inventory collectors
     ui/                  # Streamlit pages and chrome
-    timeline.py          # Persistent system timeline
-    projects.py          # Project discovery / grouping
-    knowledge.py         # Local software knowledge
+    timeline.py          # Persistent system timeline (+ export/views)
+    projects.py          # Project intelligence / grouping / pinning
+    workspaces.py        # Workspace manager (start/stop/health)
+    recommendations.py   # Scored recommendation engine
+    usage.py             # Usage history samples
+    explorer.py          # Unified system explorer graphs
+    knowledge.py         # Local software knowledge + pack
+    data/knowledge_pack.json
     relationships.py     # Component relationship graph
-    cleanup.py           # Cleanup review + advisor
+    cleanup.py           # Cleanup review heuristics
     search.py            # Local natural-language search rules
-    assistant.py         # Grounded Q&A over local facts
+    assistant.py         # Grounded Q&A with evidence/confidence
+    analytics.py         # Chart-ready analytics frames
+    automation.py        # Local automation rules
+    plugins.py           # Collector plugin registry
+    cache.py             # Lightweight TTL cache
     storage_explorer.py  # Storage buckets / treemap data
     startup_analyzer.py  # Startup impact scoring
     updates.py           # Update detection (no install)
-    annotations.py       # Favorites, pins, notes
+    annotations.py       # Favorites, pins, notes, saved searches
     reports.py           # Report generation + redaction
     backup.py            # Plist / action backups
     settings.py          # User settings
+    ui/v4_pages.py       # 4.0 page renderers
   tests/                 # Pytest suite
   scripts/               # Install, test, release helpers
 ```
@@ -113,7 +125,19 @@ The UI presents both table and tree views with filtering.
 
 ## Settings
 
-`macscope/settings.py` stores user preferences (including destructive-action acknowledgement) in local JSON under Application Support. Settings gate unsafe UI affordances.
+`macscope/settings.py` stores user preferences (including destructive-action acknowledgement) in local JSON under Application Support. Settings gate unsafe UI affordances. V4 adds custom project roots, pinned projects, usage/automation toggles, and collector cache timing.
+
+## Workspaces
+
+`macscope/workspaces.py` persists workspaces and members in SQLite. Start/stop/restart operate only on assigned members (applications, projects, URLs, terminal commands, brew services, docker containers, AI servers, scripts). Unrelated software is never targeted.
+
+## Usage & automation
+
+`macscope/usage.py` records per-snapshot usage samples. `macscope/automation.py` evaluates local rules (weekly snapshots, monthly reports, startup/port/download/storage notifications) without cloud services.
+
+## Plugins & performance
+
+`macscope/plugins.py` wraps collectors as plugins with isolated failures and manifests. `macscope/cache.py` provides TTL caching and invalidation after snapshot collection.
 
 ## Action system
 

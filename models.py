@@ -72,6 +72,10 @@ class InventoryItem(Base):
     project_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
     startup_impact: Mapped[Optional[str]] = mapped_column(String(32), nullable=True, index=True)
     knowledge_key: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    # V4 columns
+    workspace_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    usage_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    last_used_at: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
 
 
 class Snapshot(Base):
@@ -159,6 +163,110 @@ class UserAnnotation(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     stable_id: Mapped[str] = mapped_column(String(128), index=True)
-    kind: Mapped[str] = mapped_column(String(32), index=True)  # favorite | pin | note
+    kind: Mapped[str] = mapped_column(String(32), index=True)  # favorite | pin | note | project_pin | saved_search | saved_filter
     value: Mapped[str] = mapped_column(Text, default="")
     display_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+
+
+class Workspace(Base):
+    """User-defined development workspace (complete environment)."""
+
+    __tablename__ = "workspaces"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    name: Mapped[str] = mapped_column(String(255), index=True)
+    description: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(64), default="stopped", index=True)
+    pinned: Mapped[bool] = mapped_column(Boolean, default=False)
+    health: Mapped[str] = mapped_column(String(64), default="unknown")
+    config_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class WorkspaceMember(Base):
+    """Assigned resources belonging to a workspace."""
+
+    __tablename__ = "workspace_members"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    workspace_id: Mapped[int] = mapped_column(Integer, index=True)
+    member_type: Mapped[str] = mapped_column(String(64), index=True)
+    # application | project | url | terminal | venv | docker | brew_service | port | ai_server | startup_script
+    label: Mapped[str] = mapped_column(String(255), default="")
+    value: Mapped[str] = mapped_column(Text, default="")
+    stable_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    details_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class UsageSample(Base):
+    """Historical usage samples derived from snapshots."""
+
+    __tablename__ = "usage_samples"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    snapshot_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    subject_type: Mapped[str] = mapped_column(String(64), index=True)  # application | project | system | process
+    subject_key: Mapped[str] = mapped_column(String(255), index=True)
+    display_name: Mapped[str] = mapped_column(String(255), default="")
+    cpu: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    memory: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    disk_usage: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    launch_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    background_seconds: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    details_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class AutomationRule(Base):
+    """Local automation rules (snapshots, reports, threshold notifications)."""
+
+    __tablename__ = "automation_rules"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    name: Mapped[str] = mapped_column(String(255))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    rule_type: Mapped[str] = mapped_column(String(64), index=True)
+    # weekly_snapshot | monthly_report | notify_startup_change | notify_new_ports | notify_downloads | notify_storage_growth
+    schedule: Mapped[str] = mapped_column(String(64), default="manual")  # weekly | monthly | on_snapshot | manual
+    config_json: Mapped[str] = mapped_column(Text, default="{}")
+    last_run_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    last_result: Mapped[str] = mapped_column(Text, default="")
+
+
+class AutomationRun(Base):
+    __tablename__ = "automation_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    rule_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    rule_name: Mapped[str] = mapped_column(String(255), default="")
+    result: Mapped[str] = mapped_column(String(64), default="ok")
+    message: Mapped[str] = mapped_column(Text, default="")
+    details_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+class RecommendationRecord(Base):
+    """Persisted scored recommendations for history/reference."""
+
+    __tablename__ = "recommendation_records"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+    snapshot_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True, index=True)
+    category: Mapped[str] = mapped_column(String(64), index=True)
+    title: Mapped[str] = mapped_column(String(512))
+    why: Mapped[str] = mapped_column(Text, default="")
+    confidence: Mapped[float] = mapped_column(Float, default=0.0)
+    impact: Mapped[str] = mapped_column(String(64), default="Low")
+    estimated_benefit: Mapped[str] = mapped_column(String(255), default="")
+    risk: Mapped[str] = mapped_column(String(64), default="Caution")
+    evidence_json: Mapped[str] = mapped_column(Text, default="[]")
+    related_json: Mapped[str] = mapped_column(Text, default="[]")
+    timeline_refs_json: Mapped[str] = mapped_column(Text, default="[]")
+    project_refs_json: Mapped[str] = mapped_column(Text, default="[]")
+    recommended_action: Mapped[str] = mapped_column(Text, default="")
+    stable_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True, index=True)

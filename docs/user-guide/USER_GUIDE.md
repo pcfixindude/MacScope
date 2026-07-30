@@ -2,7 +2,7 @@
 
 MacScope helps you understand what is installed and running on your Mac, what starts automatically, how pieces relate, and which cleanup opportunities may exist — with previews, confirmations, and local history.
 
-**Version covered:** 3.0.x
+**Version covered:** 4.0.x
 
 ## Before you start
 
@@ -40,11 +40,21 @@ Typical workflows:
 
 ## Projects
 
-**Projects** discovers development workspaces from common roots (for example `~/Projects`) using indicators like Git, Python, Node, Docker, Streamlit, SQLite/Postgres, Cursor, and VS Code.
+**Projects** are first-class objects. MacScope discovers git branch/status/last commit, README/license/requirements, package files, size, recent activity, Docker Compose, environments, ports, LaunchAgents, and Homebrew services linked by path.
 
-Use Projects to group related applications, processes, ports, virtual environments, containers, databases, AI models, and startup items for a workspace.
+You can add **custom project roots** in Settings and **pin** projects so they remain visible.
 
 ![Projects screenshot placeholder](../images/projects.png)
+
+## Workspaces
+
+A **Workspace** is a complete development environment you define: apps, projects, URLs, terminal commands, venvs, Docker services, Homebrew services, ports, AI servers, and startup scripts.
+
+Use **Start / Stop / Restart Workspace** to manage only assigned members. MacScope will not stop unrelated software. Check **Workspace Status** and **Health** after changes.
+
+## Developer Dashboard
+
+Summarizes projects, repositories/branches, containers, databases, virtual environments, AI servers, ports, storage, and workspace health for day-to-day development oversight.
 
 ## Timeline
 

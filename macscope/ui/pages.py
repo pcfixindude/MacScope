@@ -724,6 +724,12 @@ def render_settings() -> None:
             value="\n".join(settings.project_scan_roots),
             height=100,
         )
+        custom_project_roots = st.text_area(
+            "Custom project roots (one per line)",
+            value="\n".join(settings.custom_project_roots or []),
+            height=80,
+            help="Additional roots merged with project scan roots for Project Intelligence.",
+        )
         ai_roots = st.text_area(
             "AI scan roots (one per line)",
             value="\n".join(settings.ai_scan_roots),
@@ -733,10 +739,18 @@ def render_settings() -> None:
         cache_duration = st.number_input(
             "Cache duration (seconds)", min_value=0, max_value=86400, value=int(settings.cache_duration_seconds)
         )
+        collector_cache = st.number_input(
+            "Collector cache seconds",
+            min_value=30,
+            max_value=3600,
+            value=int(getattr(settings, "collector_cache_seconds", 120) or 120),
+        )
         snapshot_retention = st.number_input(
             "Snapshot retention", min_value=1, max_value=500, value=int(settings.snapshot_retention)
         )
         auto_snapshot = st.checkbox("Automatic snapshot on startup", value=settings.automatic_snapshot_on_startup)
+        enable_usage = st.checkbox("Enable usage history tracking", value=getattr(settings, "enable_usage_tracking", True))
+        enable_automation = st.checkbox("Enable local automation rules", value=getattr(settings, "enable_automation", True))
 
         st.markdown("#### Privacy redaction")
         redact_username = st.checkbox("Redact username", value=settings.redact_username)
@@ -789,9 +803,16 @@ def render_settings() -> None:
             snapshot_retention=int(snapshot_retention),
             automatic_snapshot_on_startup=auto_snapshot,
             project_scan_roots=[line.strip() for line in project_roots.splitlines() if line.strip()],
+            custom_project_roots=[line.strip() for line in custom_project_roots.splitlines() if line.strip()],
+            pinned_project_keys=list(settings.pinned_project_keys or []),
             ai_scan_roots=[line.strip() for line in ai_roots.splitlines() if line.strip()],
             scan_depth=int(scan_depth),
             cache_duration_seconds=int(cache_duration),
+            collector_cache_seconds=int(collector_cache),
+            enable_usage_tracking=bool(enable_usage),
+            enable_automation=bool(enable_automation),
+            downloads_notify_gb=float(getattr(settings, "downloads_notify_gb", 20.0) or 20.0),
+            storage_growth_notify_gb=float(getattr(settings, "storage_growth_notify_gb", 5.0) or 5.0),
             redact_username=redact_username,
             redact_home_path=redact_home,
             redact_command_args=redact_args,

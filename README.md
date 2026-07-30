@@ -11,13 +11,26 @@
 
 MacScope helps you see what is installed, what is running, what starts automatically, how components relate, what resources they use, and which items may be safe to stop, disable, or remove — with previews, confirmations, backups, and an action history.
 
-**Current version:** 3.0.0
+**Current version:** 4.0.0
 
 > Polished open-source desktop administration suite for macOS power users and administrators. No cloud account. No inventory uploads. No required API keys.
 
 ---
 
 ## Feature highlights
+
+- **Understands your Mac** — not just inventory: why something exists, what depends on it, what changed, and whether removal is safe to consider
+- **Project Intelligence** — git, environments, compose, ports, size, activity, pinning, custom roots
+- **Workspaces** — start/stop/restart complete dev environments without touching unrelated software
+- **Historical Intelligence** — timeline views, search, export
+- **Recommendation Engine** — scored, evidence-backed guidance (never blind deletion)
+- **Usage History & Visual Analytics** — charts for CPU/memory/disk/launches and storage
+- **System Explorer** — seamless connected navigation across components
+- **Knowledge Engine 2** — 2,600+ offline software/port/framework entries
+- **Developer Dashboard & Automation** — local rules for snapshots/reports/notifications
+- **Plugin architecture** — collectors as isolated plugins
+
+### Inventory & administration (retained)
 
 - **Inventory** — Applications, processes, login/background items, LaunchAgents/Daemons, Homebrew, Python, Node, Docker, local AI software/models, network listeners, storage & security summaries
 - **System Timeline** — Persistent history of software/startup/security/runtime changes and management actions
@@ -116,7 +129,7 @@ chmod +x MacScope.command scripts/*.sh
 
 The installer creates `.venv` and installs dependencies from `requirements.txt`.
 
-Release ZIP users: expand `MacScope-3.0.0.zip`, then run the same `chmod` + `./scripts/install.sh` (or launch `MacScope.command`, which bootstraps the venv).
+Release ZIP users: expand `MacScope-4.0.0.zip`, then run the same `chmod` + `./scripts/install.sh` (or launch `MacScope.command`, which bootstraps the venv).
 
 ---
 
@@ -312,7 +325,7 @@ source .venv/bin/activate && python -m compileall -q -x '.venv|.venv312|dist' . 
 ./scripts/build_release.sh
 ```
 
-Creates `dist/MacScope-<VERSION>.zip` (for example `dist/MacScope-3.0.0.zip`).
+Creates `dist/MacScope-<VERSION>.zip` (for example `dist/MacScope-4.0.0.zip`).
 
 Human release steps: [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).  
 CI validates ZIP creation but **does not publish** GitHub Releases automatically.

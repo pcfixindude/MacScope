@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-"""MacScope 3.0 — local macOS inventory and administration suite."""
+"""MacScope 4.0 — local macOS administration platform."""
 
 from database import init_db
 from config import APP_NAME, APP_VERSION, ensure_data_dirs, migrate_legacy_data
@@ -12,6 +12,7 @@ init_db()
 import streamlit as st
 
 from collector import collect_all
+from macscope.plugins import bootstrap_builtin_plugins
 from macscope.settings import load_settings
 from macscope.timeline import list_timeline
 from macscope.ui.chrome import render_command_palette, render_folder_shortcuts
@@ -27,23 +28,37 @@ from macscope.ui.pages import (
     render_snapshots,
 )
 from macscope.ui.v3_pages import (
-    render_assistant,
-    render_cleanup_advisor,
     render_crashes,
     render_enhanced_relationships,
     render_favorites_and_notes,
     render_permissions,
-    render_projects,
-    render_search,
     render_startup_analyzer,
     render_storage_explorer,
-    render_timeline,
     render_tools_drawer,
     render_updates,
+)
+from macscope.ui.v4_pages import (
+    render_assistant_v4,
+    render_automation,
+    render_developer_dashboard,
+    render_plugins_page,
+    render_project_intelligence,
+    render_recommendation_engine,
+    render_search_v4,
+    render_system_explorer,
+    render_timeline_v4,
+    render_usage_history,
+    render_visual_analytics,
+    render_workspaces,
 )
 from snapshot import latest_snapshot, save_snapshot
 
 st.set_page_config(page_title=f"{APP_NAME} {APP_VERSION}", page_icon="🔭", layout="wide")
+
+try:
+    bootstrap_builtin_plugins()
+except Exception:
+    pass
 
 
 def _bump_refresh() -> None:
@@ -77,7 +92,9 @@ def collect_now(*, deep: bool = False, note: str = "", name: str | None = None) 
 
 PAGES = [
     "Dashboard",
+    "Developer Dashboard",
     "System Timeline",
+    "System Explorer",
     "Applications",
     "Running Processes",
     "Startup Overview",
@@ -91,9 +108,12 @@ PAGES = [
     "Docker",
     "AI Software and Models",
     "Projects",
+    "Workspaces",
     "Network",
     "Storage",
     "Storage Explorer",
+    "Usage History",
+    "Visual Analytics",
     "Security",
     "Permissions",
     "Crash History",
@@ -103,6 +123,8 @@ PAGES = [
     "Cleanup Advisor",
     "Search",
     "Assistant",
+    "Automation",
+    "Plugins",
     "Favorites & Notes",
     "Snapshots",
     "Reports",
@@ -165,10 +187,16 @@ elif page == "Tools & Folders":
 elif page == "Updates":
     render_updates()
 elif page == "System Timeline":
-    render_timeline()
+    render_timeline_v4()
+elif page == "Automation":
+    render_automation(snap, rows if snap else [])
+elif page == "Plugins":
+    render_plugins_page()
+elif page == "Workspaces":
+    render_workspaces(snap, rows if snap else [])
 elif page == "Assistant" and not snap:
     st.info("Collect a snapshot to use the assistant with inventory context.")
-    render_assistant(None, [])
+    render_assistant_v4(None, [])
 elif not snap:
     st.title(APP_NAME)
     st.info("No inventory snapshot yet. Click **Collect snapshot** in the sidebar to begin.")
@@ -179,6 +207,10 @@ elif page == "Dashboard":
     st.subheader("Recent activity")
     for event in list_timeline(limit=8):
         st.caption(f"{event.created_at} — {event.title}")
+elif page == "Developer Dashboard":
+    render_developer_dashboard(snap, rows)
+elif page == "System Explorer":
+    render_system_explorer(snap, rows)
 elif page == "Applications":
     render_inventory_page(
         "Applications",
@@ -285,7 +317,7 @@ elif page == "AI Software and Models":
         key_prefix="ai",
     )
 elif page == "Projects":
-    render_projects(snap, rows)
+    render_project_intelligence(snap, rows)
 elif page == "Network":
     render_inventory_page(
         "Network",
@@ -306,6 +338,10 @@ elif page == "Storage":
     )
 elif page == "Storage Explorer":
     render_storage_explorer(snap, rows)
+elif page == "Usage History":
+    render_usage_history(snap, rows)
+elif page == "Visual Analytics":
+    render_visual_analytics(snap, rows)
 elif page == "Security":
     render_inventory_page(
         "Security",
@@ -324,11 +360,11 @@ elif page == "Relationships":
 elif page == "Cleanup Review":
     render_cleanup(snap, rows)
 elif page == "Cleanup Advisor":
-    render_cleanup_advisor(snap, rows)
+    render_recommendation_engine(snap, rows)
 elif page == "Search":
-    render_search(snap, rows)
+    render_search_v4(snap, rows)
 elif page == "Assistant":
-    render_assistant(snap, rows)
+    render_assistant_v4(snap, rows)
 elif page == "Favorites & Notes":
     render_favorites_and_notes(rows)
 elif page == "Snapshots":

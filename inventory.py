@@ -61,6 +61,10 @@ class Item:
     project_key: str | None = None
     startup_impact: str | None = None
     knowledge_key: str | None = None
+    # V4 fields
+    workspace_id: int | None = None
+    usage_score: float | None = None
+    last_used_at: str | None = None
 
     def ensure_stable_id(self) -> str:
         if self.stable_id:

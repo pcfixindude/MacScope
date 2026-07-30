@@ -19,7 +19,9 @@ from macscope.collectors.processes import ProcessesCollector
 from macscope.collectors.python_envs import PythonCollector
 from macscope.collectors.storage import StorageCollector
 from macscope.collectors.system import SystemCollector
+from macscope.cache import cache_invalidate
 from macscope.knowledge import enrich_item_knowledge
+from macscope.plugins import bootstrap_builtin_plugins
 from macscope.projects import discover_projects, link_inventory_to_projects, projects_as_items
 from macscope.relationships import Relation, build_relationships
 from macscope.settings import load_settings
@@ -91,6 +93,12 @@ def collect_all(progress=None, *, deep: bool = False) -> CollectionResult:
             logger.exception("Collector %s failed: %s", collector.name, exc)
             result.errors.append({"collector": collector.name, "error": str(exc)})
 
+    # Ensure plugin registry mirrors collectors (isolated metadata / future actions)
+    try:
+        bootstrap_builtin_plugins(ALL_COLLECTORS)
+    except Exception as exc:
+        logger.warning("Plugin bootstrap failed: %s", exc)
+
     if progress:
         progress(0.85, "Discovering projects…")
     try:
@@ -112,6 +120,7 @@ def collect_all(progress=None, *, deep: bool = False) -> CollectionResult:
             item.ensure_stable_id()
         annotate_startup_impacts(result.items)
         result.relationships = build_relationships(result.items) + project_rels
+        cache_invalidate("inventory")
     except Exception as exc:
         logger.exception("Post-processing failed: %s", exc)
         result.errors.append({"collector": "Post-processing", "error": str(exc)})

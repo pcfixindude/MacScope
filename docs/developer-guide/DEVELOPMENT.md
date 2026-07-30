@@ -97,11 +97,16 @@ Reset local runtime data (destructive to MacScope’s own data, not your Mac app
 1. Create `macscope/collectors/<name>.py` implementing the existing collector base/pattern.
 2. Return inventory items with stable categories/fields.
 3. Register the collector in the orchestration path (`collector.py` / collectors package init).
-4. Fail soft on missing tools/permissions.
-5. Add tests with fixtures; do not require the developer’s full disk.
-6. Update architecture/user docs if the collector is user-visible.
+4. It will appear in the plugin registry via `macscope.plugins.bootstrap_builtin_plugins`.
+5. Fail soft on missing tools/permissions (plugin failures are isolated).
+6. Add tests with fixtures; do not require the developer’s full disk.
+7. Update architecture/user docs if the collector is user-visible.
 
 Collectors must be read-only.
+
+## Adding 4.0 pages
+
+Prefer `macscope/ui/v4_pages.py` for new platform pages (Workspaces, Explorer, Automation, etc.), then wire the label into `PAGES` and the `elif` dispatch in `app.py`.
 
 ## Adding pages
 

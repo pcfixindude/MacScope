@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 APP_NAME = "MacScope"
-APP_VERSION = "3.0.0"
+APP_VERSION = "4.0.0"
 
 # Source / install directory (repository root)
 BASE_DIR = Path(__file__).resolve().parent
@@ -23,7 +23,7 @@ DISABLED_ITEMS_DIR = DATA_ROOT / "disabled-items"
 SETTINGS_PATH = DATA_ROOT / "settings.json"
 DB_PATH = DATABASE_DIR / "macscope.db"
 LOG_PATH = LOGS_DIR / "macscope.log"
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 # Legacy repo-local paths (migrated on first launch if present)
 LEGACY_DB_PATH = BASE_DIR / "macscope.db"

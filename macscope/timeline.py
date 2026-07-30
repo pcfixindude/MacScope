@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
+import csv
+import io
+from datetime import datetime, timedelta
 from typing import Any
 
 from database import SessionLocal
@@ -61,6 +63,9 @@ def list_timeline(
     limit: int = 200,
     event_type: str | None = None,
     category: str | None = None,
+    since: datetime | None = None,
+    until: datetime | None = None,
+    query: str | None = None,
 ) -> list[TimelineEvent]:
     with SessionLocal() as db:
         q = db.query(TimelineEvent).order_by(TimelineEvent.id.desc())
@@ -68,7 +73,69 @@ def list_timeline(
             q = q.filter(TimelineEvent.event_type == event_type)
         if category:
             q = q.filter(TimelineEvent.category == category)
-        return q.limit(limit).all()
+        if since is not None:
+            q = q.filter(TimelineEvent.created_at >= since)
+        if until is not None:
+            q = q.filter(TimelineEvent.created_at <= until)
+        rows = q.limit(max(limit, 1)).all()
+    if query:
+        ql = query.lower()
+        rows = [
+            e
+            for e in rows
+            if ql in (e.title or "").lower()
+            or ql in (e.summary or "").lower()
+            or ql in (e.event_type or "").lower()
+            or ql in (e.category or "").lower()
+        ]
+    return rows
+
+
+def timeline_for_period(period: str = "daily", *, limit: int = 500) -> list[TimelineEvent]:
+    period = (period or "daily").lower()
+    days = {"daily": 1, "weekly": 7, "monthly": 30}.get(period, 1)
+    since = datetime.utcnow() - timedelta(days=days)
+    return list_timeline(limit=limit, since=since)
+
+
+def export_timeline_csv(events: list[TimelineEvent] | None = None) -> str:
+    events = events if events is not None else list_timeline(limit=1000)
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["created_at", "event_type", "category", "title", "summary", "source", "snapshot_id", "stable_id"])
+    for event in events:
+        writer.writerow(
+            [
+                event.created_at,
+                event.event_type,
+                event.category,
+                event.title,
+                event.summary,
+                event.source,
+                event.snapshot_id,
+                event.stable_id,
+            ]
+        )
+    return buf.getvalue()
+
+
+def export_timeline_json(events: list[TimelineEvent] | None = None) -> str:
+    events = events if events is not None else list_timeline(limit=1000)
+    payload = [
+        {
+            "created_at": str(e.created_at),
+            "event_type": e.event_type,
+            "category": e.category,
+            "title": e.title,
+            "summary": e.summary,
+            "source": e.source,
+            "snapshot_id": e.snapshot_id,
+            "stable_id": e.stable_id,
+            "details": json_loads(e.details_json),
+        }
+        for e in events
+    ]
+    return json_dumps(payload)
 
 
 def record_snapshot_delta(snapshot_id: int, older_rows: list, newer_rows: list) -> int:
@@ -107,15 +174,24 @@ def record_snapshot_delta(snapshot_id: int, older_rows: list, newer_rows: list) 
     _emit("software_installed", "Applications", result.new_applications, "Installed")
     _emit("software_removed", "Applications", result.removed_applications, "Removed")
     _emit("software_updated", "Applications", result.version_changes, "Updated")
+    _emit("version_changed", "Applications", result.version_changes, "Version change")
     _emit("startup_changed", "Startup", result.startup_state_changes + result.newly_enabled_startup, "Startup change")
     _emit("security_changed", "Security", result.security_changes, "Security change")
+    _emit("permission_changed", "Permissions", [e for e in result.added + result.removed if e.get("Category") == "Permissions"], "Permission change")
     brew_added = [e for e in result.added if e.get("Category") in {"Homebrew", "Services"}]
     brew_removed = [e for e in result.removed if e.get("Category") in {"Homebrew", "Services"}]
     _emit("homebrew_changed", "Homebrew", brew_added + brew_removed + result.service_status_changes, "Homebrew change")
     docker = [e for e in result.added + result.removed + result.changed if e.get("Category") == "Docker"]
     _emit("docker_changed", "Docker", docker, "Docker change")
     python = [e for e in result.added + result.removed if e.get("Category") == "Python"]
+    node = [e for e in result.added + result.removed if e.get("Category") == "Node"]
     _emit("python_changed", "Python", python, "Python environment change")
+    _emit("environment_changed", "Node", node, "Environment change")
     _emit("ai_model_changed", "AI", result.new_ai_models + result.removed_ai_models, "AI model change")
     _emit("network_changed", "Network", result.newly_opened_ports + result.closed_ports, "Network listener change")
+    projects = [e for e in result.added + result.removed + result.changed if e.get("Category") == "Projects"]
+    _emit("project_activity", "Projects", projects, "Project activity")
+    # Storage growth signal
+    storage_changed = [e for e in result.changed if e.get("Category") == "Storage"]
+    _emit("storage_growth", "Storage", storage_changed, "Storage change")
     return count

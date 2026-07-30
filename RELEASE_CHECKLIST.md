@@ -2,6 +2,8 @@
 
 Use this checklist for every MacScope version bump and GitHub Release.
 
+For 4.0.x specifically, also verify Workspaces start/stop only assigned members, Assistant evidence panels render, and `macscope/data/knowledge_pack.json` is included in the ZIP.
+
 ## 1. Preflight
 
 - [ ] Working tree is clean except intentional release changes

@@ -51,6 +51,10 @@ _INVENTORY_EXTRA_COLUMNS: dict[str, str] = {
     "project_key": "TEXT",
     "startup_impact": "TEXT",
     "knowledge_key": "TEXT",
+    # V4 columns
+    "workspace_id": "INTEGER",
+    "usage_score": "REAL",
+    "last_used_at": "TEXT",
 }
 
 _SNAPSHOT_EXTRA_COLUMNS: dict[str, str] = {
@@ -130,14 +134,20 @@ def init_db() -> None:
     SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
     from models import (  # noqa: F401
+        AutomationRule,
+        AutomationRun,
         BackupRecord,
         Event,
         InventoryItem,
+        RecommendationRecord,
         Relationship,
         SchemaMeta,
         Snapshot,
         TimelineEvent,
+        UsageSample,
         UserAnnotation,
+        Workspace,
+        WorkspaceMember,
     )
 
     Base.metadata.bind = engine  # type: ignore[attr-defined]
@@ -148,7 +158,17 @@ def init_db() -> None:
     _set_schema_version(SCHEMA_VERSION)
 
     # Keep commonly imported SessionLocal aliases in sync when possible.
-    for module_name in ("actions", "snapshot", "macscope.backup", "macscope.timeline", "macscope.annotations"):
+    for module_name in (
+        "actions",
+        "snapshot",
+        "macscope.backup",
+        "macscope.timeline",
+        "macscope.annotations",
+        "macscope.workspaces",
+        "macscope.usage",
+        "macscope.automation",
+        "macscope.recommendations",
+    ):
         try:
             mod = __import__(module_name, fromlist=["SessionLocal"])
             if hasattr(mod, "SessionLocal"):

@@ -60,9 +60,24 @@ class Settings:
     collect_network_listeners: bool = True
     collect_docker: bool = True
     collect_ai_models: bool = True
+    # V4 settings
+    custom_project_roots: list[str] = field(default_factory=list)
+    pinned_project_keys: list[str] = field(default_factory=list)
+    enable_usage_tracking: bool = True
+    enable_automation: bool = True
+    downloads_notify_gb: float = 20.0
+    storage_growth_notify_gb: float = 5.0
+    collector_cache_seconds: int = 120
 
     def destructive_allowed(self) -> bool:
         return bool(self.enable_destructive_actions and self.safety_notice_acknowledged)
+
+    def all_project_roots(self) -> list[str]:
+        roots: list[str] = []
+        for root in list(self.project_scan_roots) + list(self.custom_project_roots):
+            if root and root not in roots:
+                roots.append(root)
+        return roots
 
 
 _DEFAULT = Settings()
