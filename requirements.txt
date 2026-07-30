@@ -1,5 +1,5 @@
 streamlit>=1.40
-sqlalchemy>=2.0
+sqlalchemy>=2.0.51
 pydantic>=2.8
 psutil>=6.0
 pandas>=2.2
