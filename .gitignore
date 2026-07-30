@@ -1,0 +1,81 @@
+# Virtual environments
+.venv/
+.venv312/
+venv/
+env/
+
+# Local agent / editor workspace metadata
+.agents/
+.cursor/
+
+# Python caches / tooling
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Local databases and logs (never publish inventory data)
+*.db
+*.sqlite
+*.sqlite3
+macscope.db
+macscope.log
+*.log
+
+# Local runtime / generated data (repo-local leftovers)
+backups/
+disabled-items/
+cache/
+exports/
+logs/
+snapshots/*
+!snapshots/.gitkeep
+reports/*
+!reports/.gitkeep
+docs/screenshots/*
+!docs/screenshots/.gitkeep
+
+# Release build output (upload ZIP via GitHub Releases, not Git)
+dist/
+
+# Environment / secrets / credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*
+*secret*
+*token*
+id_rsa
+id_ed25519
+*.p12
+*.pfx
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
