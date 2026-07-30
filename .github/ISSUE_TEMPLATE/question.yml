@@ -1,0 +1,39 @@
+name: Question
+description: Ask a usage or contributor question that is not a bug or feature request.
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For open-ended brainstorming, consider GitHub Discussions (Ideas / Q&A) if enabled.
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - Installation / launch
+        - Permissions / Full Disk Access
+        - Collectors / inventory accuracy
+        - Actions / safety model
+        - Development / contributing
+        - Releases / packaging
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you already tried?
+      description: Docs sections read, commands run, settings checked.
+  - type: input
+    id: version
+    attributes:
+      label: MacScope version (if relevant)
+      placeholder: "3.0.0"

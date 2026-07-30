@@ -1,0 +1,27 @@
+title: "[Show and Tell]: "
+labels: ["show-and-tell"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Show how you use MacScope, a workflow tip, or a docs/screenshot contribution.
+  - type: textarea
+    id: story
+    attributes:
+      label: What are you sharing?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How others can try it
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots / links
+      description: Paste images or links (redact personal paths).
+  - type: input
+    id: version
+    attributes:
+      label: MacScope version
+      placeholder: "3.0.0"

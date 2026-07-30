@@ -1,0 +1,51 @@
+name: Feature Request
+description: Propose a new capability or enhancement.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature ideas should remain local-only and safety-preserving. Prefer extending existing subsystems.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem does this solve for macOS administrators?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the desired behavior and where it might fit (Timeline, Projects, Cleanup Advisor, etc.).
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: safety_impact
+    attributes:
+      label: Does this involve destructive or privileged actions?
+      options:
+        - "No — read-only / documentation / UI clarity"
+        - "Yes — needs previews, confirmations, and protection review"
+        - "Unsure"
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints you accept
+      options:
+        - label: Feature can work without mandatory cloud/network services.
+          required: true
+        - label: Feature should reuse existing collectors/models when practical.
+          required: true
+  - type: textarea
+    id: extras
+    attributes:
+      label: Additional context
+      description: Mockups, example queries, related issues, or environment notes.

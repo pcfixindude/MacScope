@@ -1,0 +1,36 @@
+title: "[Idea]: "
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share a product idea. For concrete implementation proposals, prefer a Feature Request issue.
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+      description: What would you like MacScope to do better?
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: Why it matters
+      description: Who benefits and what problem it solves.
+    validations:
+      required: true
+  - type: dropdown
+    id: local_only
+    attributes:
+      label: Can this stay local-only (no required cloud service)?
+      options:
+        - "Yes"
+        - "No"
+        - "Unsure"
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Related tools, screenshots, or prior discussions.

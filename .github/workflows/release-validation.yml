@@ -1,0 +1,80 @@
+name: Release Validation
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    paths:
+      - "VERSION"
+      - "CHANGELOG.md"
+      - "README.md"
+      - "scripts/build_release.sh"
+      - ".github/workflows/release-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate release metadata & ZIP
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Verify README exists and is non-empty
+        run: |
+          test -s README.md
+          grep -q "MacScope" README.md
+
+      - name: Verify VERSION
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          echo "VERSION=$VERSION"
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          grep -q "$VERSION" config.py
+          grep -q "$VERSION" macscope/__init__.py
+
+      - name: Verify CHANGELOG mentions VERSION
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          grep -q "$VERSION" CHANGELOG.md
+
+      - name: Compile & test
+        run: |
+          python -m compileall -q -x '.venv|.venv312|dist' .
+          pytest -q
+
+      - name: Build release ZIP
+        run: |
+          chmod +x scripts/*.sh MacScope.command
+          ./scripts/build_release.sh
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          test -f "dist/MacScope-${VERSION}.zip"
+          unzip -l "dist/MacScope-${VERSION}.zip" | grep -q "MacScope-${VERSION}/VERSION"
+          unzip -l "dist/MacScope-${VERSION}.zip" | grep -q "MacScope-${VERSION}/README.md"
+          unzip -l "dist/MacScope-${VERSION}.zip" | grep -q "MacScope-${VERSION}/MacScope.command"
+
+      - name: Upload ZIP artifact (not a GitHub Release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: MacScope-release-zip
+          path: dist/MacScope-*.zip
+          if-no-files-found: error
+
+      # Intentional: this workflow never creates or publishes GitHub Releases.

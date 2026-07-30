@@ -1,0 +1,89 @@
+name: Bug Report
+description: Report incorrect behavior, a crash, or a collector/action failure.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve MacScope. Please redact personal paths/secrets before pasting logs.
+  - type: input
+    id: version
+    attributes:
+      label: MacScope version
+      description: Contents of the `VERSION` file or About page.
+      placeholder: "3.0.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "15.x (Sequoia)"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.13.x"
+    validations:
+      required: true
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: How did you install / launch?
+      options:
+        - MacScope.command (double-click)
+        - Terminal + Streamlit
+        - Release ZIP
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences describing the problem.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that reliably reproduce the issue.
+      placeholder: |
+        1. Launch MacScope
+        2. Open ...
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Diagnostics
+      description: Paste relevant excerpts from Diagnostics or `~/Library/Application Support/MacScope/logs/` (redacted).
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Collectors involved, Full Disk Access status, Docker/Homebrew presence, etc.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Confirmation
+      options:
+        - label: I did not include passwords, tokens, or private inventory dumps.
+          required: true

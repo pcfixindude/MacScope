@@ -1,0 +1,31 @@
+title: "[Q&A]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ask the community. For confirmed defects, open a Bug Report instead.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: macOS version, MacScope version, what you already tried.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Getting started
+        - Inventory / collectors
+        - Actions / safety
+        - Projects / Timeline / Assistant
+        - Development
+        - Other
+    validations:
+      required: true
