@@ -71,7 +71,7 @@ jobs:
           unzip -l "dist/MacScope-${VERSION}.zip" | grep -q "MacScope-${VERSION}/MacScope.command"
 
       - name: Upload ZIP artifact (not a GitHub Release)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MacScope-release-zip
           path: dist/MacScope-*.zip
